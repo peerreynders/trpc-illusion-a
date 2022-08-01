@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "outDir": "./server/out",
+    "lib": ["ES2019"],
+    "module": "commonjs",
+    "target": "ES2021",
+    "lib": ["ES2021", "DOM"],
+    "declaration": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "strict": true
+  },
+  "include": ["src/server"],
+  "exclude": ["node_modules"]
+}

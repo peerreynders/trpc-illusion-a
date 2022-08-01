@@ -1,0 +1,37 @@
+{
+  "name": "trpc-illusion-a",
+  "version": "0.0.0",
+  "description": "The illusion of safety",
+  "type": "module",
+    "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peerreynders/trpc-illusion-a.git"
+  },
+  "keywords": [],
+  "author": "Peer Reynders",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/peerreynders/trpc-illusion-a/issues"
+  },
+  "homepage": "https://github.com/peerreynders/trpc-illusion-a#readme",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint:types": "./node_modules/.bin/tsc",
+    "plugin:build": "tsc --project tsconfig.server.json ; ./node_modules/.bin/rollup -c",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.1",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@types/ws": "^8.5.3",
+    "typescript": "^4.6.4",
+    "vite": "^3.0.0"
+  },
+  "dependencies": {
+    "@trpc/client": "^9.26.2",
+    "@trpc/server": "^9.26.2",
+    "ws": "^8.8.1",
+    "zod": "^3.17.10"
+  }
+}
