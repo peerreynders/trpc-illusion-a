@@ -3,6 +3,8 @@ import { z } from 'zod';
 
 type Context = {};
 
+// query
+//
 const queryInput = z.object({ name: z.string().nullish() }).nullish();
 type QueryInput = z.infer<typeof queryInput>;
 
@@ -17,13 +19,35 @@ const queryParams = {
   resolve: queryResolve,
 };
 
-const appRouter = router<Context>().query('hello', queryParams);
+// mutation
+//
+const mutationInput = z.object({ title: z.string(), text: z.string() });
+type MutationInput = z.infer<typeof mutationInput>;
+
+function mutationResolve({ input }: { input: MutationInput }) {
+  // imagine db call here
+  return {
+    id: String(
+      Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER).toString(16)
+    ),
+    ...input,
+  };
+}
+
+const mutationParams = {
+  input: mutationInput,
+  resolve: mutationResolve,
+};
+
+// router
+//
+const appRouter = router<Context>()
+  .query('hello', queryParams)
+  .mutation('createPost', mutationParams);
 
 export type AppRouter = typeof appRouter;
 
-export {
-  appRouter
-};
+export { appRouter };
 
 /* eslint-disable @typescript-eslint/ban-types */
 /*

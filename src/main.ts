@@ -9,12 +9,24 @@ async function main() {
     url: urlBase
   });
 
+  // query
+  //
   const queryParams = {
     name: 'world',
   };
-  const helloResponse = await client.query('hello', queryParams);
+  const helloRes = await client.query('hello', queryParams);
 
-  console.log('helloResponse', helloResponse);
+  console.log('helloResponse', helloRes);
+
+  // mutation
+  //
+  const mutationParams = {
+    title: 'hello world',
+    text: 'check out tRPC.io',
+  };
+  const createPostRes = await client.mutation('createPost', mutationParams);
+
+  console.log('createPostResponse', createPostRes);
 }
 
 main();
