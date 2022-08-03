@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "The illusion of safety",
   "type": "module",
-    "repository": {
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/peerreynders/trpc-illusion-a.git"
   },
