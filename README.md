@@ -2,6 +2,7 @@
 The illusion of safety
 
 [Notes are reverse (i.e. Stack/FIFO) order]
+- Added the first chaos code `status429`. This already uncovered that the tRPC client code doesn't check the response for non-success status codes [ref](https://github.com/trpc/trpc/blob/5767007ef9a99df7a86aa6707ed82361590c416d/packages/client/src/internals/httpRequest.ts#L75-L89). The code doesn't fail until it tries to parse the non-JSON content. A proxy server could easily issue a "Too Many Requests" response.
 - Zero effort merge into a minimal Solid TypeScript app ([Get Started](https://github.com/solidjs/templates#user-content-get-started)).
 - Milestone: `randomnumber` subscription functional. [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
 - Milestone: `createPost` mutation functional.
@@ -9,6 +10,29 @@ The illusion of safety
 - https://github.com/trpc/trpc/issues/2292 forced setting to ES2021 instead of ESNext
 - Focusing on the [Plugin API](https://vitejs.dev/guide/api-plugin.html) for now though (specifically [configureServer](https://vitejs.dev/guide/api-plugin.html#vite-specific-hooks)).
 - Interesting vite configuration option: [server.proxy](https://vitejs.dev/config/server-options.html#server-proxy)
+
+---
+
+```shell
+$ npm run plugin:build
+
+  > vite-template-solid@0.0.0 plugin:build
+  > tsc --project tsconfig.server.json ; ./node_modules/.bin/rollup -c
+
+
+  ./server/out/serveTrpcPlugin.js → ./server...
+  created ./server in 704ms
+$ npm run dev
+
+  > vite-template-solid@0.0.0 dev
+  > vite
+
+
+    VITE v3.0.8  ready in 401 ms
+
+    ➜  Local:   http://localhost:3000/
+    ➜  Network: use --host to expose
+```
 
 ---
  > The hard problems in distributed computing are not the problem of how to get things on and off the wire.

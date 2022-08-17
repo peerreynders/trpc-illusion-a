@@ -2,13 +2,14 @@ import { createWSClient, wsLink } from '@trpc/client/links/wsLink';
 import { httpLink } from '@trpc/client/links/httpLink';
 import { splitLink } from '@trpc/client/links/splitLink';
 import { createTRPCClient } from '@trpc/client';
+import { appPathname } from './server/app-bridge';
 
 import type { Operation } from '@trpc/client';
-import type { AppRouter } from './server/app-router';
+import type { AppRouter } from './server/app-bridge';
 
 const [urlBase, urlWs] = (() => {
   const url = new URL(window.location.origin);
-  url.pathname = '/trpc';
+  url.pathname = appPathname;
   const base = url.href;
   url.protocol = 'ws:';
   const ws = url.href;
@@ -43,7 +44,8 @@ async function main() {
   const queryParams = {
     name: 'world',
   };
-  const helloRes = await client.query('hello', queryParams);
+//  const helloRes = await client.query('hello', queryParams);
+  const helloRes = await client.query('hello', { name: 'status429' });
 
   console.log('helloResponse', helloRes);
 

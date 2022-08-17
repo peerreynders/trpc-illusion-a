@@ -73,6 +73,4 @@ const appRouter = router<Context>()
 
 export type AppRouter = typeof appRouter;
 
-const appPathname = '/trpc';
-
-export { appPathname, appRouter, createContext };
+export { appRouter, createContext };

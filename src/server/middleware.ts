@@ -1,14 +1,30 @@
-import url from 'url';
 import ws from 'ws';
 import { nodeHTTPRequestHandler } from '@trpc/server/adapters/node-http';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
-import { appPathname, appRouter, createContext } from './app-router';
+import { appRouter, createContext } from './app-router';
+import { appPathname } from './app-bridge';
+import { checkChaos, chaosHandler } from './chaos';
 
 import type stream from 'node:stream';
 import type http from 'node:http';
 import type { Server, WebSocket } from 'ws';
 import type { Connect } from 'vite/types/connect';
-import type { AppRouter } from './app-router';
+import type { AppRouter } from './app-bridge';
+
+const hasOwnProperty = Object.hasOwnProperty;
+
+function hasOwn(object: unknown, key: string): boolean {
+  if (!(object && typeof object === 'object')) return false;
+  return hasOwnProperty.call(object, key);
+}
+
+function urlFromRequest({ socket, headers, url }: http.IncomingMessage) {
+  const host = headers.host;
+  if (!host) return undefined;
+
+  const protocol = hasOwn(socket, 'encrypted') ? 'https://' : 'http://';
+  return new URL(protocol + host + url);
+}
 
 function makeUpgradeListener(wss: Server) {
   function upgrade(ws: WebSocket) {
@@ -20,10 +36,10 @@ function makeUpgradeListener(wss: Server) {
     socket: stream.Duplex,
     head: Buffer
   ) {
-    if (!request.url) return;
+    const url = urlFromRequest(request);
+    if (!url) return;
 
-    const pathname = url.parse(request.url).pathname;
-    if (pathname === appPathname) {
+    if (url.pathname === appPathname) {
       wss.handleUpgrade(request, socket, head, upgrade);
     }
   }
@@ -61,23 +77,33 @@ function makeTrpcMiddleware(server: http.Server | null) {
     response: http.ServerResponse,
     next: Connect.NextFunction
   ) {
-    if (!(request.url && request.url.startsWith(appPathname))) return next();
+    const url = urlFromRequest(request);
+    const pathname = url?.pathname;
 
-    const pathname = url.parse(request.url).pathname;
-    if (!pathname) return next();
+    if (!(url && pathname && pathname.startsWith(appPathname))) return next();
 
-    const endpoint = pathname.substring(startAt);
-    await nodeHTTPRequestHandler<
+    const kind = checkChaos(url);
+    if (kind) return chaosHandler(kind, request, response);
+
+    await forward(request, response,  pathname.substring(startAt));
+  };
+
+  function forward(
+    req: Connect.IncomingMessage, 
+    res: http.ServerResponse,
+    path: string
+  ) {
+    return nodeHTTPRequestHandler<
       AppRouter,
       Connect.IncomingMessage,
       http.ServerResponse
     >({
       ...options,
-      req: request,
-      res: response,
-      path: endpoint,
+      req,
+      res,
+      path
     });
-  };
+  }
 }
 
 export { makeTrpcMiddleware };
