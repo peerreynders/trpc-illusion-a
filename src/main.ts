@@ -44,8 +44,13 @@ async function main() {
   const queryParams = {
     name: 'world',
   };
-//  const helloRes = await client.query('hello', queryParams);
-  const helloRes = await client.query('hello', { name: 'status429' });
+  const helloRes = await client.query('hello', queryParams);
+//  const helloRes = await client.query('hello', { name: 'status429' });
+//  const helloRes = await client.query('hello', { name: 'status500' });
+//  const helloRes = await client.query('hello', { name: 'status502' });
+//  const helloRes = await client.query('hello', { name: 'status503' });
+//  const helloRes = await client.query('hello', { name: 'status504' });
+//  const helloRes = await client.query('hello', { name: 'slow' });
 
   console.log('helloResponse', helloRes);
 

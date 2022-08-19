@@ -1,22 +1,14 @@
 import ws from 'ws';
-import { nodeHTTPRequestHandler } from '@trpc/server/adapters/node-http';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
-import { appRouter, createContext } from './app-router';
-import { appPathname } from './app-bridge';
+import { appOptions, appPathname, checkAppName, makeAppHandler } from './app-handler';
 import { checkChaos, chaosHandler } from './chaos';
+import { hasOwn } from './helpers';
 
 import type stream from 'node:stream';
 import type http from 'node:http';
 import type { Server, WebSocket } from 'ws';
 import type { Connect } from 'vite/types/connect';
 import type { AppRouter } from './app-bridge';
-
-const hasOwnProperty = Object.hasOwnProperty;
-
-function hasOwn(object: unknown, key: string): boolean {
-  if (!(object && typeof object === 'object')) return false;
-  return hasOwnProperty.call(object, key);
-}
 
 function urlFromRequest({ socket, headers, url }: http.IncomingMessage) {
   const host = headers.host;
@@ -48,10 +40,8 @@ function makeUpgradeListener(wss: Server) {
 }
 
 function makeTrpcMiddleware(server: http.Server | null) {
-  const options = {
-    router: appRouter,
-    createContext,
-  };
+  const options = appOptions();
+  const appHandler = makeAppHandler(options);
 
   if (server) {
     // WebSockets
@@ -68,9 +58,6 @@ function makeTrpcMiddleware(server: http.Server | null) {
   }
 
   // HTTP Request/Response
-  //
-  // `+ 1` to exclude the leading solidus
-  const startAt = appPathname.length + 1;
 
   return async function trpcMiddleware(
     request: Connect.IncomingMessage,
@@ -78,32 +65,16 @@ function makeTrpcMiddleware(server: http.Server | null) {
     next: Connect.NextFunction
   ) {
     const url = urlFromRequest(request);
-    const pathname = url?.pathname;
+    if (!url) return next();
 
-    if (!(url && pathname && pathname.startsWith(appPathname))) return next();
+    const appName = checkAppName(url);
+    if (!appName) return next();
 
     const kind = checkChaos(url);
-    if (kind) return chaosHandler(kind, request, response);
+    if (kind) return chaosHandler({ kind, appHandler, appName }, request, response);
 
-    await forward(request, response,  pathname.substring(startAt));
+    await appHandler(request, response, appName);
   };
-
-  function forward(
-    req: Connect.IncomingMessage, 
-    res: http.ServerResponse,
-    path: string
-  ) {
-    return nodeHTTPRequestHandler<
-      AppRouter,
-      Connect.IncomingMessage,
-      http.ServerResponse
-    >({
-      ...options,
-      req,
-      res,
-      path
-    });
-  }
 }
 
 export { makeTrpcMiddleware };
